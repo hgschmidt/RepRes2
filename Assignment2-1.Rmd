@@ -1,0 +1,106 @@
+---
+title: "Assignment2"
+output: html_document
+---
+
+##Reproducible Research Week 2 Project
+
+
+### Loading and preprocessing the data
+
+```{r setup, echo = TRUE}
+URL <- ""
+my_zip <- "repdata%2Fdata%2Factivity.zip"
+unzip(my_zip)
+ActMonDat <- read.csv("activity.csv")
+```
+
+### What is the mean total number of steps taken per day?
+
+```{r, echo = TRUE}
+
+AMD<- na.omit(ActMonDat)
+
+DayAgr <- aggregate(AMD$steps, by=list(Category = AMD$date), FUN = sum)
+colnames(DayAgr) <- c("Day", "Steps")
+hist(DayAgr$Steps, xlab = "Steps", main = "Histogram of Steps per Day")
+mean(DayAgr$steps)
+median(DayAgr$steps)
+
+```
+
+### What is the average daily activity pattern?
+
+```{R, echo = TRUE}
+IntAgr <- aggregate(AMD$steps, by=list(Category = AMD$interval), FUN = mean)
+colnames(IntAgr) <- c("Interval", "Steps")
+plot(x = IntAgr$Interval, y=IntAgr$Steps, type="l")
+
+DayAgr2 <- aggregate(AMD$steps, by=list(Category = AMD$date), FUN = mean)
+colnames(DayAgr2) <- c("Day", "Steps")
+plot(DayAgr2$Steps, type="l", xlab = "Steps", ylab = "Day")
+
+IntAgr$Interval[ which.max(IntAgr$Steps)]
+
+
+```
+
+### Imputing missing values
+
+```{R, echo = TRUE}
+AM <- ActMonDat
+sum(is.na(ActMonDat))
+
+i <- 0
+
+for (i in 1:length(AM$steps)) 
+  {
+  if(is.na(AM$steps[i]))
+    {
+    AM$steps[i] <- as.numeric(IntAgr$Steps[ IntAgr$Interval == AM$interval[i] ] )
+    }
+  
+}
+
+AMagr <- aggregate(AM$steps, by=list(Category = AM$date), FUN = sum)
+colnames(AMagr) <- c("Day", "steps")
+hist(AMagr$steps)
+mean(AMagr$steps)
+median(AMagr$steps)
+
+```
+
+
+
+### Are there differences in activity patterns between weekdays and weekends?
+
+```{r, echo = TRUE}
+
+AM$day <- weekdays(as.Date(AM$date))
+
+wd <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+we <- c("Saturday", "Sunday")
+
+for (i in 1:length(AM$steps))
+  {
+  if(AM$day[i] %in% wd )
+  {
+    AM$WeekPart[i] <- "Weekday"
+  }
+  
+  if(AM$day[i] %in% we )
+    {
+    AM$WeekPart[i] <- "Weekend"
+    }
+}
+
+agrw <- aggregate(AM$steps, by=list(AM$interval, AM$WeekPart), FUN = mean)
+colnames(agrw) <- c("interval", "Weekpart", "steps")
+
+ss1 <- agrw[agrw$Weekpart == "Weekday",]
+ss2 <- agrw[agrw$Weekpart == "Weekend",]
+
+plot(x = ss1$interval, y = ss1$steps, type = "l", col = "red", ylab = "Interval", xlab = "Mean Steps")
+lines(x = ss2$interval, y = ss2$steps, type = "l", col = "blue")
+
+```
