@@ -4,9 +4,14 @@ output: html_document
 ---
 
 ##Reproducible Research Week 2 Project
+#####Hugo G Schmidt
 
+  
 
 ### Loading and preprocessing the data
+
+  We upload the data, which is stored in comma separated value (csv) format and plae it into a data frame.  I have not found it necessarry to futher pre-process the data, as the data frame works well enough to run this kind of analysis.  However, due to my geographical location, I have had to download the zip file in its entirety and then both unzip it and load it.
+
 
 ```{r setup, echo = TRUE}
 URL <- ""
@@ -17,6 +22,8 @@ ActMonDat <- read.csv("activity.csv")
 
 ### What is the mean total number of steps taken per day?
 
+To answer this question, we need to work out the total number of steps taken each day, and then take the mean, and the median.   We determine the total number of steps taken daily through the "aggregate" command.
+
 ```{r, echo = TRUE}
 
 AMD<- na.omit(ActMonDat)
@@ -24,28 +31,43 @@ AMD<- na.omit(ActMonDat)
 DayAgr <- aggregate(AMD$steps, by=list(Category = AMD$date), FUN = sum)
 colnames(DayAgr) <- c("Day", "Steps")
 hist(DayAgr$Steps, xlab = "Steps", main = "Histogram of Steps per Day")
-mean(DayAgr$steps)
-median(DayAgr$steps)
+mean(DayAgr$Steps)
+median(DayAgr$Steps)
 
 ```
 
+The mean number of steps taken is `r mean(DayAgr$Steps)`.
+
+The median number of steps taken is `r median(DayAgr$Steps)`.
+
 ### What is the average daily activity pattern?
+
+Here we need to know the mean number of steps per five minute interval.  As before, we use 'aggreagate' to create a new data.frame that tells us the mean number of steps in each five minute interval.  We then produce a line-plot of the number of steps per interval, and identify the interval in question.
 
 ```{R, echo = TRUE}
 IntAgr <- aggregate(AMD$steps, by=list(Category = AMD$interval), FUN = mean)
 colnames(IntAgr) <- c("Interval", "Steps")
-plot(x = IntAgr$Interval, y=IntAgr$Steps, type="l")
+
+plot(x = IntAgr$Interval, y=IntAgr$Steps, type="l", ylab = "Steps", xlab = "Interval", main = "Daily Activity Pattern")
 
 DayAgr2 <- aggregate(AMD$steps, by=list(Category = AMD$date), FUN = mean)
 colnames(DayAgr2) <- c("Day", "Steps")
-plot(DayAgr2$Steps, type="l", xlab = "Steps", ylab = "Day")
+plot(DayAgr2$Steps, type="l", ylab = "Steps", xlab = "day")
 
 IntAgr$Interval[ which.max(IntAgr$Steps)]
-
-
 ```
 
+The interval with the most number of steps is the `r which.max(IntAgr$Steps)` interval.
+
+
 ### Imputing missing values
+
+  We have two data frames here. 
+  
+  The _AM_ data frame that contains the raw values.  
+  The _IntAgr_ data frame that contains the mean number of steps taken per interval.
+  
+  In the code below, we step through the _AM_ data frame and determine which intervals do not have a value, i.e. return _NA_.  We then retrieve the mean for that interval from _IntAgr_ and pass it to AM at that location.
 
 ```{R, echo = TRUE}
 AM <- ActMonDat
@@ -73,6 +95,8 @@ median(AMagr$steps)
 
 
 ### Are there differences in activity patterns between weekdays and weekends?
+
+To answer this question, we first determine whether or a given day is a weekday or a weekend.  We then add this information to a new variable in the _AM_ data frame, and, as before, aggregate the activity levels from each.
 
 ```{r, echo = TRUE}
 
@@ -104,3 +128,5 @@ plot(x = ss1$interval, y = ss1$steps, type = "l", col = "red", ylab = "Interval"
 lines(x = ss2$interval, y = ss2$steps, type = "l", col = "blue")
 
 ```
+
+We appear to have a more concentrated activity on the weekdays (red)  and a more spread out activity on the weekends (blue).  This corresponds to there being a lot of early activtiy to get to work on the weekdays followed by sedentary sitting at a desk.
